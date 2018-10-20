@@ -24,6 +24,7 @@ package org.pentaho.di.trans.steps.csvinput;
 
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.util.List;
@@ -50,6 +51,10 @@ public class CsvInputData extends BaseStepData implements StepDataInterface {
   private int bufferSize;
 
   public byte[] delimiter;
+  
+  public byte[] rowEndMark;
+  public String rowEndMarkStr;
+  
   public byte[] enclosure;
 
   public int preferredBufferSize;
@@ -80,6 +85,8 @@ public class CsvInputData extends BaseStepData implements StepDataInterface {
   public PatternMatcherInterface delimiterMatcher;
   public PatternMatcherInterface enclosureMatcher;
   public CrLfMatcherInterface crLfMatcher;
+  
+  public PatternMatcherInterface rowEndMatcher;
 
   /**
    * Data class for CsvInput step
@@ -92,6 +99,14 @@ public class CsvInputData extends BaseStepData implements StepDataInterface {
     startBuffer = 0;
     endBuffer = 0;
     totalBytesRead = 0;
+    
+    rowEndMarkStr = "@^@";
+    try {
+		rowEndMark=rowEndMarkStr.getBytes("ASCII");
+	} catch (UnsupportedEncodingException e) {
+		e.printStackTrace();
+		rowEndMark = null;
+	}
   }
 
   // Resize
@@ -184,7 +199,7 @@ public class CsvInputData extends BaseStepData implements StepDataInterface {
 
     return false;
   }
-
+ 
   /**
    * Moves the endBuffer pointer by one.<br>
    * If there is not enough room in the buffer to go there, resize the byte buffer and read more data.<br>
@@ -237,6 +252,10 @@ public class CsvInputData extends BaseStepData implements StepDataInterface {
     int fieldStart = startBuffer;
 
     int length = endBuffer - fieldStart;
+    
+    if(delimiterFound) {
+      length -= delimiter.length - 1;
+    }
 
     if ( newLineFound && !endOfBuffer ) {
       length -= encodingType.getLength();
@@ -290,12 +309,16 @@ public class CsvInputData extends BaseStepData implements StepDataInterface {
   boolean newLineFound() {
     return crLfMatcher.isReturn( byteBuffer, endBuffer ) || crLfMatcher.isLineFeed( byteBuffer, endBuffer );
   }
+  
+  boolean rowEndMarkFound() {
+	return rowEndMatcher.matchesPattern(byteBuffer, bufferSize, endBuffer, rowEndMark);
+  }
 
   boolean delimiterFound() {
 	boolean result = delimiterMatcher.matchesPattern(byteBuffer, bufferSize, endBuffer, delimiter);
 	
-	if (result)
-			endBuffer = endBuffer - delimiter.length + 1;
+//	if (result)
+//			endBuffer = endBuffer - delimiter.length + 1;
 		
     return result;
   }

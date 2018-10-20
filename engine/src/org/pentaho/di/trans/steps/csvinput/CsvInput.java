@@ -450,6 +450,7 @@ public class CsvInput extends BaseStep implements StepInterface {
       int outputIndex = 0;
       boolean newLineFound = false;
       boolean endOfBuffer = false;
+ 
       List<Exception> conversionExceptions = null;
       List<ValueMetaInterface> exceptionFields = null;
 
@@ -502,6 +503,8 @@ public class CsvInput extends BaseStep implements StepInterface {
         boolean delimiterFound = false;
         boolean enclosureFound = false;
         boolean doubleLineEnd = false;
+        
+        boolean isLastColEndMark = false;
         int escapedEnclosureFound = 0;
         boolean ignoreEnclosuresInField = ignoreEnclosures;
         while ( !delimiterFound && !newLineFound && !endOfBuffer ) {
@@ -510,8 +513,13 @@ public class CsvInput extends BaseStep implements StepInterface {
           //
           if ( data.delimiterFound() ) {
             delimiterFound = true;
-          } else if ( ( !meta.isNewlinePossibleInFields() || outputIndex == meta.getInputFields().length - 1 )
-            && data.newLineFound() ) {
+          }
+          else if ( 
+            //( !meta.isNewlinePossibleInFields() || outputIndex == meta.getInputFields().length - 1 )
+        	//  && data.newLineFound() ) {
+            // if newlinepossible, do not use the colIndex to verify the row is ended or not. Just check the last field equals data.rowEndMark
+            ( !meta.isNewlinePossibleInFields() && data.newLineFound() )
+            || ( meta.isNewlinePossibleInFields() && data.rowEndMarkFound() ) ) {
             // Perhaps we found a (pre-mature) new line?
             //
             // In case we are not using an enclosure and in case fields contain new lines
@@ -639,10 +647,15 @@ public class CsvInput extends BaseStep implements StepInterface {
         // do-while loop below) and possibly skipping a newline character. This can occur if there is an
         // empty column at the end of the row (see the Jira case for details)
         if ( ( !newLineFound && outputIndex < meta.getInputFields().length ) || ( newLineFound && doubleLineEnd ) ) {
-          int i = 0;
-          while ( ( !data.newLineFound() && ( i < data.delimiter.length ) ) ) {
+//          int i = 0;
+//          while ( ( !data.newLineFound() && ( i < data.delimiter.length ) ) ) {
+//            data.moveEndBufferPointer();
+//            i++;
+//          }
+        	
+          // only need to move one for delimiter, because the endBuffer point already point to the last char of delimiter        	
+          if ( !data.newLineFound() ) {
             data.moveEndBufferPointer();
-            i++;
           }
           if ( data.newLineFound() ) {
             data.moveEndBufferPointer();
@@ -815,6 +828,8 @@ public class CsvInput extends BaseStep implements StepInterface {
           data.crLfMatcher = new SingleByteCrLfMatcher();
           break;
       }
+      
+      data.rowEndMatcher = new SpecialRowEndMarkMatcher( data.crLfMatcher );
 
       return true;
 

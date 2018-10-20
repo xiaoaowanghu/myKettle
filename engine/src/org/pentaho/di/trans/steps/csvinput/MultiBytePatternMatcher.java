@@ -44,5 +44,13 @@ public class MultiBytePatternMatcher implements PatternMatcherInterface {
         return true;
     } else
         return false;
-    }
+  }
+  
+  public int getContinueToMatchIndex() {
+    return continueToMatchIndex;
+  }
+  
+  public void reset() {
+	continueToMatchIndex = 0;
+  }
 }
