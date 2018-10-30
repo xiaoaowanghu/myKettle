@@ -504,7 +504,6 @@ public class CsvInput extends BaseStep implements StepInterface {
         boolean enclosureFound = false;
         boolean doubleLineEnd = false;
         
-        boolean isLastColEndMark = false;
         int escapedEnclosureFound = 0;
         boolean ignoreEnclosuresInField = ignoreEnclosures;
         while ( !delimiterFound && !newLineFound && !endOfBuffer ) {

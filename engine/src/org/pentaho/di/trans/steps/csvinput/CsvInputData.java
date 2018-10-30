@@ -315,12 +315,10 @@ public class CsvInputData extends BaseStepData implements StepDataInterface {
   }
 
   boolean delimiterFound() {
-	boolean result = delimiterMatcher.matchesPattern(byteBuffer, bufferSize, endBuffer, delimiter);
+	return delimiterMatcher.matchesPattern(byteBuffer, bufferSize, endBuffer, delimiter);
 	
 //	if (result)
-//			endBuffer = endBuffer - delimiter.length + 1;
-		
-    return result;
+//			endBuffer = endBuffer - delimiter.length + 1;		   
   }
 
   boolean enclosureFound() {
