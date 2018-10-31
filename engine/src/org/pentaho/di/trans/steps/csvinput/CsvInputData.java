@@ -248,11 +248,15 @@ public class CsvInputData extends BaseStepData implements StepDataInterface {
     return result;
   }
 
-  byte[] getField( boolean delimiterFound, boolean enclosureFound, boolean newLineFound, boolean endOfBuffer ) {
+  byte[] getField( boolean delimiterFound, boolean enclosureFound, boolean newLineFound, boolean endOfBuffer, boolean rowEnded, boolean newLinePossible) {
+	if(rowEnded) {
+		return new byte[0];
+	}
+	
     int fieldStart = startBuffer;
 
     int length = endBuffer - fieldStart;
-    
+	      
     if(delimiterFound) {
       length -= delimiter.length - 1;
     }
@@ -277,6 +281,17 @@ public class CsvInputData extends BaseStepData implements StepDataInterface {
 
     byte[] field = new byte[length];
     System.arraycopy( byteBuffer, fieldStart, field, 0, length );
+    
+    if( newLinePossible && endOfBuffer && field.length == rowEndMark.length ) {
+    	int i = 0;
+    	for(; i < rowEndMark.length; i++) {
+    		if( rowEndMark[i] != field[i] )
+    			break;
+    	}
+    	if(i >= rowEndMark.length) {
+    		field = new byte[0]; 
+    	}
+    }
 
     return field;
   }
