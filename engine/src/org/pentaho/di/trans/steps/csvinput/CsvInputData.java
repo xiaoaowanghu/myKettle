@@ -343,4 +343,8 @@ public class CsvInputData extends BaseStepData implements StepDataInterface {
   boolean endOfBuffer() {
     return endBuffer >= bufferSize;
   }
+  
+  void replaceCurrentChar(byte c) {
+	byteBuffer[endBuffer] = c;
+  }
 }

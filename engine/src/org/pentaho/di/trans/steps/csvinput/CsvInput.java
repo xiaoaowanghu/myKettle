@@ -604,6 +604,11 @@ public class CsvInput extends BaseStep implements StepInterface {
               ignoreEnclosuresInField = true;
             }
           } else {
+        	if( meta.isNewlinePossibleInFields() && data.newLineFound() ) {
+        	  //if line breaker found in field
+        	  data.replaceCurrentChar((byte)32);
+        	}
+        	  
             if ( data.moveEndBufferPointer() ) {
               endOfBuffer = true;
               break;
